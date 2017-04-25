@@ -1,7 +1,7 @@
 # DistributedSystemsGame
 
 #### Este trabalho foi feito a partir da disciplina de Sistemas Distribuidos.
-Eu fiquei com a parte do Servidor enquanto minha dupla ficou com a parte do Cliente, logo decidimos que faríamos na linguagem que fosse mais interessante para cada um. O Servidor, feito em Python está disponível neste repositório, porém o Cliente, feito em C#, está disponível em [github.com/jeffsantoss/MultiplayerGamer](github.com/jeffsantoss/MultiplayerGamer).
+Eu fiquei com a parte do Servidor enquanto minha dupla ficou com a parte do Cliente, logo decidimos que faríamos na linguagem que fosse mais interessante para cada um. O Servidor, feito em Python 3, está disponível neste repositório, porém o Cliente, feito em C#, está disponível em [github.com/jeffsantoss/MultiplayerGamer](github.com/jeffsantoss/MultiplayerGamer).
 
 #### Objetivo
 Criar um sistema que possa fazer a interação de vários Clientes a partir de um Servidor.
