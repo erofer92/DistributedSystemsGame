@@ -2,6 +2,7 @@
 import socket
 import threading
 import json
+from datetime import datetime
 from message import Message
 from database import DataBase
 from user import Player, PlayerList
@@ -19,9 +20,12 @@ class ClientHandler(object):
         self.is_logged = False
         self.player = None
         self.user = None
+        self.delay = None
+        self.last_message_time = datetime.now()
 
     def handle(self):
         """ Responsável por cuidar da conexão e das mensagens de um cliente """
+        self.calc_delay()
         try:
             while True:
                 message = self.client.recv(BUFFER)
@@ -36,6 +40,41 @@ class ClientHandler(object):
         except OSError:
             pass
         self.finish()
+
+    def increment_position(self, increase):
+        if self.player.d == 0:
+            self.player.x -= increase
+
+        elif self.player.d == 1:
+            self.player.y -= increase
+
+        elif self.player.d == 2:
+            self.player.x += increase
+
+        elif self.player.d == 3:
+            self.player.y += increase
+
+    def update_position(self):
+        """
+        Calcula a quantidade de pixels que o player andou desde
+        a ultima mensagem recebida e prevê a posição atual do player.
+        """
+        space = 20  # definido pelo cliente
+        time = 0.5  # definido pelo cliente
+        now = datetime.now()
+        delay = now - self.last_message_time
+        delay = (delay.seconds + delay.microseconds / 1000000) / 2  # em segundos
+        self.last_message_time = now  # atualiza a hora que sua posição foi atualizada.
+        increase = (delay * space)/time + (self.delay * space)/time
+        self.increment_position(increase)
+
+    def calc_delay(self):
+        self.client.send('sync'.encode())
+        before = datetime.now()
+        self.client.recv(BUFFER)
+        after = datetime.now()
+        delay = (after - before)
+        self.delay = (delay.seconds + delay.microseconds / 1000000) / 2  # em segundos
 
     def execute_action(self, request: str):
         try:
@@ -84,7 +123,6 @@ class ClientHandler(object):
             self.server.in_game_handler_list.insert(0, self)
             message.object = PlayerList(self.server.player_list())
             message.cod = 3
-        # print(message.json())
         self.client.send(message.json().encode())
 
     def player_handler(self, message: Message):
@@ -134,12 +172,6 @@ class Server(object):
         try:
             while True:
                 c_socket, c_address = self.socket.accept()
-                if c_address[0] in self.black_list:
-                    # NOT IMPLEMENTED
-                    print('[-] Connection refused:', c_address[0], ':', c_address[1],
-                          '\n[-] The IP address is in the Black List')
-                    c_socket.close()
-                    continue
                 self.new_handler(c_socket, c_address)
         except KeyboardInterrupt:
             print()
@@ -184,4 +216,8 @@ class Server(object):
                   'removido da lista de clientes conectados!')
 
     def player_list(self):
-        return [handler.player for handler in self.in_game_handler_list]
+        l = []
+        for h in self.in_game_handler_list:
+            h.update_position()
+            l.append(h.player)
+        return l
