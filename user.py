@@ -1,6 +1,7 @@
 
 import json
 
+from enum import Enum
 
 class User(object):
     """ Formato da mensagem JSON:
@@ -13,13 +14,13 @@ class User(object):
         Caso x seja igual a 0, não foi possível criar um registro,
         pois já existe um registro com o login especificado.
     """
-    def __init__(self, *args, **kwargs):
-        self.id = args[0] if args else 0
-        self.name = args[1] if args else kwargs['Name']
-        self.email = args[2] if args else kwargs['Email']
-        self.login = args[3] if args else kwargs['Login']
-        self.password = args[4] if args else kwargs['Password']
-        self.player = None  # type: Player
+    def __init__(self, Id=0, Name='', Email='', Login='', Password='', Player=None, **kwargs):
+        self.id = Id
+        self.name = Name
+        self.email = Email
+        self.login = Login
+        self.password = Password
+        self.player = Player  # type: Player
 
     def tupl(self):
         return self.id, self.name, self.email, self.login, self.password
@@ -34,24 +35,18 @@ class User(object):
             }
 
     def json(self):
-        return json.dumps({
-            'Id': self.id,
-            'Name': self.name,
-            'Email': self.email,
-            'Login': self.login,
-            'Password': self.password,
-            })
+        return json.dumps(self.dic())
 
 
 class Player(object):
     """ Quando recebida via JSON, tem código 2 """
-    def __init__(self, *args, **kwargs):
-        self.id = args[0] if args else kwargs['Id']
-        self.login = args[1] if args else kwargs['Login']
-        self.x = args[2] if args else kwargs['X']
-        self.y = args[3] if args else kwargs['Y']
-        self.d = args[4] if args else kwargs['D']
-        self.coins = args[5] if args else kwargs['Coins']
+    def __init__(self, Id=0, Login='', X=100, Y=100, D=3, IsLeader=False, **kwargs):
+        self.id = Id
+        self.login = Login
+        self.x = X
+        self.y = Y
+        self.d = D
+        self.leader = IsLeader
 
     def dic(self):
         return {
@@ -60,11 +55,11 @@ class Player(object):
             'X': self.x,
             'Y': self.y,
             'D': self.d,
-            'Coins': self.coins
+            'IsLeader': self.leader
             }
 
     def tupl(self):
-        return self.id, self.login, self.x, self.y, self.d, self.coins
+        return self.id, self.login, self.x, self.y, self.d
 
     def json(self):
         return json.dumps(self.dic())
@@ -76,7 +71,7 @@ class PlayerList(object):
         Quando enviada via JSON, tem código 3
     """
 
-    def __init__(self, player_list: list):
+    def __init__(self, player_list):
         self.player_list = player_list
 
     def dic(self):
@@ -84,3 +79,10 @@ class PlayerList(object):
 
     def json(self):
         return json.dumps(self.dic())
+
+class PlayerDirection(Enum):
+
+    LEFT = 0
+    RIGHT = 1
+    UP = 2
+    DOWN = 3

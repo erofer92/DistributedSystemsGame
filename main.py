@@ -2,8 +2,7 @@
 from server import Server
 from database import DataBase
 
-port = 5555
-server_addr = ('192.168.0.17', port)
+server_addr = ('192.168.0.29', 5555)
 
 try:
     path = 'sqlite.db'

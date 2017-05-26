@@ -7,14 +7,14 @@ class Message(object):
     """
         Formato da mensagem JSON:
         {'cod': str, 'object': object}
-        
+
         cod pode ter os valores:
         cod = '00' - object = User
         cod = '01' - object = Login
         cod = '02' - object = Logout
         cod = '03' - object = Player
         cod = '04' - object = PlayerList
-        
+
         Cliente - Servidor
         cod = '00' - requisição de novo registro
                      formato da mensagem: {'cod': 00, 'object': User}
@@ -55,9 +55,9 @@ class Message(object):
                      sucesso: {'cod': 04, 'object': PlayerList}
                      erro: não tem
     """
-    def __init__(self, **kwargs):
-        self.cod = kwargs['Cod']
-        self.object = self.__convert_object(kwargs['Object'])
+    def __init__(self, Cod=0, Object=None):
+        self.cod = Cod
+        self.object = self.__convert_object(Object)
 
     def __convert_object(self, d):
         if self.cod == 0:
