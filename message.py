@@ -55,7 +55,7 @@ class Message(object):
                      sucesso: {'cod': 04, 'object': PlayerList}
                      erro: não tem
     """
-    def __init__(self, Cod=0, Object=None):
+    def __init__(self, Cod=-1, Object=None):
         self.cod = Cod
         self.object = self.__convert_object(Object)
 
@@ -70,11 +70,13 @@ class Message(object):
             return PlayerList(**d)  # Apenas Servidor - Cliente
         elif self.cod == 4:
             return Player(**d)  # Logout
+        else:
+            return None
 
     def dic(self):
         return {
             'Cod': self.cod,
-            'Object': self.object.dic()
+            'Object': None if not self.object else self.object.dic()
         }
 
     def json(self):

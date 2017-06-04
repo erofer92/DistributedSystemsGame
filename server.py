@@ -86,8 +86,9 @@ class ClientHandler(object):
     def login_handler(self, message: Message):
         user = self.server_db.select_user_by_login_pass(message.object)
 
-        if self.logged:
-            self.refuse_connection(Message)
+        if self.already_connected():
+            self.finish()
+            return
 
         if user:
             self.player = self.server_db.select_player(user)
@@ -113,7 +114,10 @@ class ClientHandler(object):
     def player_handler(self, message: Message):
 
         if not self.logged:
-            pass  # evitar tentativas de alterar a movimentação do player sem que esteja logado
+            print("Client", self.client_addr, "tried to move a player before login. \nDisconnecting...")
+            self.client.send(message.json().encode())
+            self.finish()
+            return
 
         if self.logged:
             message.cod = 2
@@ -149,12 +153,11 @@ class ClientHandler(object):
             if self in self.server.in_game_handler_list:
                 self.server.in_game_handler_list.remove(self)
             self.server.handler_list.remove(self)
+            self.client.close()
+            print('[+] Client ' + self.client_addr[0] + ':' + str(self.client_addr[1]) + ' disconnected')
 
-        self.client.close()
-        print('[+] Client ' + self.client_addr[0] + ':' + str(self.client_addr[1]) + ' disconnected')
-
-    def refuse_connection(self, message: Message):
-        pass
+    def already_connected(self):
+        return self.player.login in [h.player.login for h in self.server.in_game_handler_list]
 
     def increment_position(self, increase):
         if self.player.d == PlayerDirection.LEFT.value:
@@ -236,10 +239,6 @@ class Server(object):
                 handl.client.send(message.json().encode())
 
     def broadcast(self, handler, message: str):
-        '''
-        map(lambda h: h.client.send(message) if h.client.getpeername() != handler.client.getpeername() else None,
-            self.in_game_handler_list)
-        '''
         for handl in self.in_game_handler_list:
             try:
                 if handl.client.getpeername() != handler.client.getpeername():
@@ -249,7 +248,6 @@ class Server(object):
                 # desconectado porem ainda não saiu da lista
 
     def player_list(self):
-        # return [h.player for h in self.in_game_handler_list]
         l = []
         for h in self.in_game_handler_list:
             h.update_position()
